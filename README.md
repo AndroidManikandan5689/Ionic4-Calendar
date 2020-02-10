@@ -35,7 +35,6 @@ imports: [
 import { 
   CalendarModal,
   CalendarModalOptions,
-  DayConfig,
   CalendarResult
  } from 'node_modules/ionic4calenderlib';
 import { ModalController } from '@ionic/angular';
