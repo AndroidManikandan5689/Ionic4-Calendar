@@ -43,12 +43,6 @@ const NUM_OF_MONTHS_TO_CREATE = 3;
 
       <ng-content select="[sub-header]"></ng-content>
 
-      <!-- <ion-calendar-week
-        [color]="_d.color"
-        [weekArray]="_d.weekdays"
-        [weekStart]="_d.weekStart">
-      </ion-calendar-week> -->
-
     </ion-header>
 
     <ion-content (ionScroll)="onScroll($event)" class="calendar-page" [scrollEvents]="true"
@@ -85,7 +79,7 @@ const NUM_OF_MONTHS_TO_CREATE = 3;
     </ion-content>
 
   <ion-footer>
-  <ion-toolbar (click)="done()" [disabled]="!canDone()">
+  <ion-toolbar (click)="done()" *ngIf="canDone()">
     <ion-title style="text-align:center">Done</ion-title>
   </ion-toolbar>
 </ion-footer>
