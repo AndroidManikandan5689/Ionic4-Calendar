@@ -9,7 +9,8 @@ description: Cordova plugin for scan cheque micr code using camera preview with 
 
 ## Installation
 	npm i moment
-    npm i ionic4calenderlib
+	
+	copy and paste this library into your code
 
 ## Supported Platforms
 - Android, Ios
