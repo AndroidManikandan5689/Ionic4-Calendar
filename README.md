@@ -16,7 +16,7 @@ description: Cordova plugin for scan cheque micr code using camera preview with 
 
 ## Demo
 
-![Image description](link-to-image)
+![Image description](screenshots/screenshot.png)
 
 ### How to Use
 ```
