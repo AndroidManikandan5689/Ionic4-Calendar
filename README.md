@@ -16,7 +16,7 @@ description: Cordova plugin for scan cheque micr code using camera preview with 
 
 ## Demo
 
-![Image description](link-to-image)
+![Image description](screenshots/screenshot.png)
 
 ### How to Use
 ```
@@ -35,7 +35,6 @@ imports: [
 import { 
   CalendarModal,
   CalendarModalOptions,
-  DayConfig,
   CalendarResult
  } from 'node_modules/ionic4calenderlib';
 import { ModalController } from '@ionic/angular';
