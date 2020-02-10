@@ -1,0 +1,15 @@
+{
+  "name": "ionic4calenderlib",
+  "version": "1.0.0",
+  "description": "Simple calendar component",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Manikandan.K",
+  "license": "ISC",
+  "keywords": [
+    "ionic4",
+    "calender"
+  ]
+}
