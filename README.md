@@ -22,7 +22,7 @@ description: Cordova plugin for scan cheque micr code using camera preview with 
 ### How to Use
 ```
 //app.module.ts and page module
-import { CalendarModule } from 'node_modules/ionic4calenderlib';
+import { CalendarModule } from 'libs/ionic4calenderlib';
 @NgModule({
 ...
 imports: [
@@ -37,7 +37,7 @@ import {
   CalendarModal,
   CalendarModalOptions,
   CalendarResult
- } from 'node_modules/ionic4calenderlib';
+ } from 'libs/ionic4calenderlib';
 import { ModalController } from '@ionic/angular';
 @Component({
   selector: 'app-home',
