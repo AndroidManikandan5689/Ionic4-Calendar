@@ -1,16 +1,14 @@
-# IonicMicrCameraPreviewPlugin
+# Ionic 4 calendar using datefns library
 
 ---
-title: Ionic Camera Preview for Micr Outline 
-description: Cordova plugin for scan cheque micr code using camera preview with custom overlay view
+title: Ionic 4 calendar 
+description: Ionic 4 calendar using date-fns library in angular 8
 ---
-
-# cordova-plugin-raqmiyat-micrcamerapreview
 
 ## Installation
-	npm i moment
-	
-	copy and paste this library into your code
+	npm install date-fns --save
+	# or
+	yarn add date-fns
 
 ## Supported Platforms
 - Android, Ios
@@ -59,22 +57,31 @@ export class HomePage {
   }
 
   async openCalendar() {
-    const options: CalendarModalOptions = {
-      monthFormat: 'MMM YYYY',
-      title: 'Select Date'
+
+    const options: CalendarModalOptions = {		
+      pickMode:'single', //types : single, range, multi
+      monthFormat: 'MMM YYYY', // Month format for calendar component
+      title: 'Select Date',   // Title of the calendar component
+      doneLabel: 'Done',   // Title of the calendar component
+      defaultDate: new Date(), // Default date have current date
+      from: new Date(), // Current date
+      to: new Date(new Date().setFullYear(new Date().getFullYear() + 1))	// Maximum one year from the current date
     };
 
-    const myCalendar = await this.modalCtrl.create({
+    const myCalendar = await this.modalController.create({
       component: CalendarModal,
-      componentProps: { options }
+      componentProps: { options },
+      cssClass: 'mdlBckdrp'	// Custom css
     });
 
     myCalendar.present();
 
     const event: any = await myCalendar.onDidDismiss();
     const date: CalendarResult = event.data;
-    this.selected_date = JSON.stringify(date);
-    console.log(date);
+    if (date !== null) {
+      this.selectedDate = date.dateObj;
+      this.flightAvaialbilityForm.controls['departureDate'].setValue(this.datePipe.transform(date.dateObj));
+    }
   }
 
 }
