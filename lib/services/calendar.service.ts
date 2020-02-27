@@ -1,6 +1,5 @@
 import { Inject, Injectable, Optional } from '@angular/core';
-import * as moment from 'moment';
-
+import { format, getTime, getUnixTime, subDays, getYear, isSameDay, toDate, isBefore, addDays, getDate, getMonth, getDaysInMonth, isWithinInterval, addMonths, subMonths, isAfter, differenceInMonths } from 'date-fns';
 import {
   CalendarOriginal,
   CalendarDay,
@@ -95,7 +94,7 @@ export class CalendarService {
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstWeek = new Date(year, month, 1).getDay();
-    const howManyDays = moment(time).daysInMonth();
+    const howManyDays = getDaysInMonth(time);
     return {
       year,
       month,
@@ -112,24 +111,31 @@ export class CalendarService {
   }
 
   createCalendarDay(time: number, opt: CalendarModalOptions, month?: number): CalendarDay {
-    let _time = moment(time);
-    let date = moment(time);
-    let isToday = moment().isSame(_time, 'days');
+    let _time = getTime(time);
+    let date = getTime(time);
+    let isToday = isSameDay(new Date(), _time);
     let dayConfig = this.findDayConfig(_time, opt);
-    let _rangeBeg = moment(opt.from).valueOf();
-    let _rangeEnd = moment(opt.to).valueOf();
+    let _rangeBeg = getTime(opt.from).valueOf();
+    let _rangeEnd = getTime(opt.to).valueOf();
     let isBetween = true;
-    let disableWee = opt.disableWeeks.indexOf(_time.toDate().getDay()) !== -1;
+    let disableWee = opt.disableWeeks.indexOf(toDate(_time).getDay()) !== -1;
+
     if (_rangeBeg > 0 && _rangeEnd > 0) {
-      if (!opt.canBackwardsSelected) {
-        isBetween = !_time.isBetween(_rangeBeg, _rangeEnd, 'days', '[]');
+      if (!opt.canBackwardsSelected) {      
+        isBetween = !isWithinInterval(_time, {start: _rangeBeg, end: _rangeEnd});
+
+        //Select today date as default date
+        if(isToday)
+        {
+          isBetween = false;
+        }
       } else {
-        isBetween = moment(_time).isBefore(_rangeBeg) ? false : isBetween;
+        isBetween = isBefore(_time,_rangeBeg) ? false : isBetween;
       }
     } else if (_rangeBeg > 0 && _rangeEnd === 0) {
       if (!opt.canBackwardsSelected) {
-        let _addTime = _time.add(1, 'day');
-        isBetween = !_addTime.isAfter(_rangeBeg);
+        let _addTime = addDays(_time, 1);
+        isBetween = !isAfter(_addTime, _rangeBeg);
       } else {
         isBetween = false;
       }
@@ -162,14 +168,15 @@ export class CalendarService {
       title,
       subTitle,
       selected: false,
-      isLastMonth: date.month() < month,
-      isNextMonth: date.month() > month,
+      isLastMonth: getMonth(date) < month,
+      isNextMonth: getMonth(date) > month,
       marked: dayConfig ? dayConfig.marked || false : false,
       cssClass: dayConfig ? dayConfig.cssClass || '' : '',
       disable: _disable,
-      isFirst: date.date() === 1,
-      isLast: date.date() === date.daysInMonth(),
+      isFirst: getDate(date) === 1,
+      isLast: getDate(date) === getDaysInMonth(date),
     };
+
   }
 
   createCalendarMonth(original: CalendarOriginal, opt: CalendarModalOptions): CalendarMonth {
@@ -192,21 +199,17 @@ export class CalendarService {
 
     if (opt.showAdjacentMonthDay) {
       const _booleanMap = days.map(e => !!e);
-      const thisMonth = moment(original.time).month();
+      const thisMonth = getMonth(original.time);
       let startOffsetIndex = _booleanMap.indexOf(true) - 1;
       let endOffsetIndex = _booleanMap.lastIndexOf(true) + 1;
       for (startOffsetIndex; startOffsetIndex >= 0; startOffsetIndex--) {
-        const dayBefore = moment(days[startOffsetIndex + 1].time)
-          .clone()
-          .subtract(1, 'd');
+        const dayBefore = subDays(days[startOffsetIndex + 1].time, 1);
         days[startOffsetIndex] = this.createCalendarDay(dayBefore.valueOf(), opt, thisMonth);
       }
 
       if (!(_booleanMap.length % 7 === 0 && _booleanMap[_booleanMap.length - 1])) {
         for (endOffsetIndex; endOffsetIndex < days.length + (endOffsetIndex % 7); endOffsetIndex++) {
-          const dayAfter = moment(days[endOffsetIndex - 1].time)
-            .clone()
-            .add(1, 'd');
+          const dayAfter = addDays(days[endOffsetIndex - 1].time, 1);
           days[endOffsetIndex] = this.createCalendarDay(dayAfter.valueOf(), opt, thisMonth);
         }
       }
@@ -223,11 +226,8 @@ export class CalendarService {
 
     let _start = new Date(startTime);
     let _startMonth = new Date(_start.getFullYear(), _start.getMonth(), 1).getTime();
-
     for (let i = 0; i < monthsNum; i++) {
-      let time = moment(_startMonth)
-        .add(i, 'M')
-        .valueOf();
+      let time = addMonths(_startMonth, i).valueOf();
       let originalCalendar = this.createOriginalCalendar(time);
       _array.push(this.createCalendarMonth(originalCalendar, opt));
     }
@@ -257,15 +257,15 @@ export class CalendarService {
   }
 
   multiFormat(time: number): CalendarResult {
-    const _moment = moment(time);
+    const _datefns = getTime(time);
     return {
-      time: _moment.valueOf(),
-      unix: _moment.unix(),
-      dateObj: _moment.toDate(),
-      string: _moment.format(defaults.DATE_FORMAT),
-      years: _moment.year(),
-      months: _moment.month() + 1,
-      date: _moment.date(),
+      time: _datefns.valueOf(),
+      unix: getUnixTime(_datefns),
+      dateObj: toDate(_datefns),
+      string: format(_datefns, defaults.DATE_FORMAT),
+      years: getYear(_datefns),
+      months: getMonth(_datefns) + 1,
+      date: getDate(_datefns),
     };
   }
 }

@@ -12,7 +12,7 @@ import {
 import { NavParams, ModalController, IonContent } from '@ionic/angular';
 import { CalendarDay, CalendarMonth, CalendarModalOptions } from '../calendar.model';
 import { CalendarService } from '../services/calendar.service';
-import * as moment from 'moment';
+import { format, getTime, addMonths, subMonths, isAfter, differenceInMonths } from 'date-fns';
 import { pickModes } from '../config';
 
 const NUM_OF_MONTHS_TO_CREATE = 3;
@@ -21,22 +21,12 @@ const NUM_OF_MONTHS_TO_CREATE = 3;
   selector: 'ion-calendar-modal',
   styleUrls: ['./calendar.modal.scss'],
   template: `
-    <ion-header>
-      <ion-toolbar [color]="_d.color" >
-          <!-- <ion-buttons slot="start">
-              <ion-button type='button' slot="icon-only" fill="clear" (click)="onCancel()">
-              <span *ngIf="_d.closeLabel !== '' && !_d.closeIcon">{{ _d.closeLabel }}</span>
-              <ion-icon *ngIf="_d.closeIcon" name="close"></ion-icon>
-            </ion-button>
-          </ion-buttons> -->
-
-          <ion-title>{{ _d.title }}</ion-title>
-
+     <ion-header>
+      <ion-toolbar >
+          <ion-title slot="start">{{ _d.title }}</ion-title>
           <ion-buttons slot="end">
             <ion-button type='button' slot="icon-only" *ngIf="!_d.autoDone" fill="clear"  (click)="onCancel()">
-              <!-- <span *ngIf="_d.doneLabel !== '' && !_d.doneIcon">{{ _d.doneLabel }}</span> -->
-              <!-- <ion-icon *ngIf="_d.doneIcon" name="checkmark"></ion-icon> -->
-              <ion-icon  name="close"></ion-icon>
+              <ion-icon name="close"></ion-icon>
             </ion-button>
           </ion-buttons>
       </ion-toolbar>
@@ -79,8 +69,8 @@ const NUM_OF_MONTHS_TO_CREATE = 3;
     </ion-content>
 
   <ion-footer>
-  <ion-toolbar (click)="done()" *ngIf="canDone()">
-    <ion-title style="text-align:center">Done</ion-title>
+  <ion-toolbar (click)="done()" *ngIf="canDone()" class="buttonGradientBlue">
+    <ion-title style="text-align:center">{{ _d.doneLabel }}</ion-title>
   </ion-toolbar>
 </ion-footer>
   `,
@@ -115,7 +105,6 @@ export class CalendarModal implements OnInit, AfterViewInit {
     public ref: ChangeDetectorRef,
     public calSvc: CalendarService
   ) {
-    moment.locale("en");
   }
 
   ngOnInit(): void {
@@ -138,7 +127,7 @@ export class CalendarModal implements OnInit, AfterViewInit {
     }
 
     this.calendarMonths = this.calSvc.createMonthsByPeriod(
-      moment(this._d.from).valueOf(),
+      getTime(this._d.from).valueOf(),
       this.findInitMonthNumber(this._d.defaultScrollTo) + this.step,
       this._d
     );
@@ -146,6 +135,10 @@ export class CalendarModal implements OnInit, AfterViewInit {
 
   initDefaultDate(): void {
     const { pickMode, defaultDate, defaultDateRange, defaultDates } = this._d;
+
+    console.log("default "+defaultDate);
+    
+    this.datesTemp[0] = this.calSvc.createCalendarDay(this._getDayTime(defaultDate), this._d);
     switch (pickMode) {
       case pickModes.SINGLE:
         if (defaultDate) {
@@ -228,12 +221,11 @@ export class CalendarModal implements OnInit, AfterViewInit {
   nextMonth(event: any): void {
     const len = this.calendarMonths.length;
     const final = this.calendarMonths[len - 1];
-    const nextTime = moment(final.original.time)
-      .add(NUM_OF_MONTHS_TO_CREATE, 'M')
-      .valueOf();
-    const rangeEnd = this._d.to ? moment(this._d.to).subtract(1, 'M') : 0;
+    
+    const nextTime = addMonths(final.original.time, 1).valueOf();
+    const rangeEnd = this._d.to ? subMonths(this._d.to, 1) : 0;
 
-    if (len <= 0 || (rangeEnd !== 0 && moment(final.original.time).isAfter(rangeEnd))) {
+    if (len <= 0 || (rangeEnd !== 0 && isAfter(final.original.time, rangeEnd))) {
       event.target.disabled = true;
       return;
     }
@@ -251,9 +243,7 @@ export class CalendarModal implements OnInit, AfterViewInit {
       return;
     }
 
-    const firstTime = (this.actualFirstTime = moment(first.original.time)
-      .subtract(NUM_OF_MONTHS_TO_CREATE, 'M')
-      .valueOf());
+    const firstTime = (this.actualFirstTime = subMonths(first.original.time, NUM_OF_MONTHS_TO_CREATE).valueOf());
 
     this.calendarMonths.unshift(...this.calSvc.createMonthsByPeriod(firstTime, NUM_OF_MONTHS_TO_CREATE, this._d));
     this.ref.detectChanges();
@@ -317,27 +307,32 @@ export class CalendarModal implements OnInit, AfterViewInit {
   }
 
   findInitMonthNumber(date: Date): number {
-    let startDate = this.actualFirstTime ? moment(this.actualFirstTime) : moment(this._d.from);
-    const defaultScrollTo = moment(date);
-    const isAfter: boolean = defaultScrollTo.isAfter(startDate);
-    if (!isAfter) return -1;
+
+    if(typeof this.actualFirstTime === 'undefined')
+    {
+      this.actualFirstTime = new Date().getTime();
+    }
+    let startDate = this.actualFirstTime ? getTime(this.actualFirstTime).valueOf() : getTime(this._d.from).valueOf();
+    const defaultScrollTo = getTime(date);
+    const isAfterBoolean: boolean = isAfter(defaultScrollTo, startDate);
+    if (!isAfterBoolean) return -1;
 
     if (this.showYearPicker) {
-      startDate = moment(new Date(this.year, 0, 1));
+      startDate = getTime(new Date(this.year, 0, 1));
     }
 
-    return defaultScrollTo.diff(startDate, 'month');
+    return differenceInMonths(defaultScrollTo, startDate);
   }
 
   _getDayTime(date: any): number {
-    return moment(moment(date).format('YYYY-MM-DD')).valueOf();
+    return getTime(date).valueOf();
   }
 
   _monthFormat(date: any): string {
-    return moment(date).format(this._d.monthFormat.replace(/y/g, 'Y'));
+    return format(date, this._d.monthFormat.replace(/Y/g, 'y'));
   }
 
-  trackByIndex(index: number, momentDate: CalendarMonth): number {
-    return momentDate.original ? momentDate.original.time : index;
+  trackByIndex(index: number, fnsDate: CalendarMonth): number {
+    return fnsDate.original ? fnsDate.original.time : index;
   }
 }

@@ -3,6 +3,8 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { CalendarDay, CalendarMonth, CalendarOriginal, PickMode } from '../calendar.model';
 import { defaults, pickModes } from '../config';
 
+import { format, getTime, addMonths, subMonths, isAfter, differenceInMonths } from 'date-fns';
+
 export const MONTH_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => MonthComponent),

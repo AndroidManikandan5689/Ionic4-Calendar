@@ -26,23 +26,33 @@ export class HomePage {
     this.openCalendar();
   }
 
+  
   async openCalendar() {
-    const options: CalendarModalOptions = {
-      monthFormat: 'MMM YYYY',
-      title: 'Select Date'
+
+    const options: CalendarModalOptions = {		
+      pickMode:'single', //types : single, range, multi
+      monthFormat: 'MMM YYYY', // Month format for calendar component
+      title: 'Select Date',   // Title of the calendar component
+      doneLabel: 'Done',   // Title of the calendar component
+      defaultDate: new Date(), // Default date have current date
+      from: new Date(), // Current date
+      to: new Date(new Date().setFullYear(new Date().getFullYear() + 1))	// Maximum one year from the current date
     };
 
-    const myCalendar = await this.modalCtrl.create({
+    const myCalendar = await this.modalController.create({
       component: CalendarModal,
-      componentProps: { options }
+      componentProps: { options },
+      cssClass: 'mdlBckdrp'	// Custom css
     });
 
     myCalendar.present();
 
     const event: any = await myCalendar.onDidDismiss();
     const date: CalendarResult = event.data;
-    this.selected_date = JSON.stringify(date);
-    console.log(date);
+    if (date !== null) {
+      this.selectedDate = date.dateObj;
+      this.flightAvaialbilityForm.controls['departureDate'].setValue(this.datePipe.transform(date.dateObj));
+    }
   }
 
 }

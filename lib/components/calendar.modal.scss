@@ -16,9 +16,24 @@
   border-bottom: 1px solid #f1f1f1; }
 
 :host h4 {
-  font-weight: 400;
-  font-size: 1.1rem;
+  // font-weight: 400;
+  font-size: 1.5rem;
   display: block;
   margin: 1rem 0 0;
   margin-left: 2rem;
-  color: #929292; }
+  color: #1D1760; }
+
+  ion-header 
+  {
+  ion-toolbar {
+      --background:#F2F2F2;
+  }
+  ion-button{
+  color: var(--ion-color-black) !important;
+}
+
+}
+:host(.title-ios.title-default), :host(.title-ios.title-large)
+{
+  text-align: left !important;
+}
